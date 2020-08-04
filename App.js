@@ -5,7 +5,7 @@ import { localNotification } from './src/LocalNotificationService'
 
 export default class App extends Component {
   componentDidMount() {
-    fcmService.registerAppWithFCM();
+    // fcmService.registerAppWithFCM();
     fcmService.register(this.onRegister, this.onNotification, this.onOpenNotification);
     localNotification.configure(this.onOpenNotification)
   }
@@ -27,14 +27,14 @@ export default class App extends Component {
     console.log('open Notify', notify)
   }
 
-  // componentWillUnmount() {
-  //   fcmService.unRegister();
-  // }
+  componentWillUnmount() {
+    fcmService.unRegister();
+  }
 
   render() {
     return (
       <View>
-        <Text> textInComponent </Text>
+        <Text>Test Notify</Text>
       </View>
     )
   }

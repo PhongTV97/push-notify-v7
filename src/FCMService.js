@@ -1,5 +1,9 @@
 import messaging from '@react-native-firebase/messaging';
-import { Platform } from 'react-native';
+import { Platform, Linking, Alert, PermissionsAndroid } from 'react-native';
+
+// Foreground	When the application is open and in view.
+// Background	When the application is open, however in the background(minimised).This typically occurs when the user has pressed the "home" button on the device or has switched to another app via the app switcher.
+// Quit	When the device is locked or application is not active or running.The user can quit an app by "swiping it away" via the app switcher UI on the device.
 
 class FCMService {
     register = (onRegister, onNotification, onOpenNotification) => {
@@ -7,19 +11,49 @@ class FCMService {
         this.createNotificationListeners(onRegister, onNotification, onOpenNotification)
     }
 
-    registerAppWithFCM = async () => {
-        if (Platform.OS === 'ios') {
-            await messaging.registerDeviceForRemoteMessages();
-            await messaging.setAutoInitEnabled(true);
-        }
-    }
+    // registerAppWithFCM = async () => {
+    //     if (Platform.OS === 'ios') {
+    //         await messaging.registerDeviceForRemoteMessages();
+    //         await messaging.setAutoInitEnabled(true);
+    //     }
+    // }
 
+    //Kiểm tra quyền: phải yêu cầu quyền thông báo ứng dụng trong Alert Dialog
     checkPermission = (onRegister) => {
         messaging().hasPermission().then(enabled => {
             if (enabled) {
                 this.getToken(onRegister)
             } else {
-                this.requestPermission(onRegister)
+                console.log('Ko có quyền')
+                // Nếu chưa có thì xin cấp quyền
+                Alert.alert(
+                    "Warning",
+                    "Bật tính năng nhận thông báo!",
+                    [
+                        {
+                            text: "Cancel",
+                            onPress: () => console.log("Cancel Pressed"),
+                            style: "cancel"
+                        },
+                        {
+                            text: "OK", onPress: () => Linking.openSettings()
+                        }
+                    ],
+                    { cancelable: false }
+                );
+                // const granted = PermissionsAndroid.request(
+                //     PermissionsAndroid.PERMISSIONS.CAMERA,
+                //     {
+                //         title: "Cool Photo App Camera Permission",
+                //         message:
+                //             "Cool Photo App needs access to your camera " +
+                //             "so you can take awesome pictures.",
+                //         buttonNeutral: "Ask Me Later",
+                //         buttonNegative: "Cancel",
+                //         buttonPositive: "OK"
+                //     }
+                // );
+                // this.requestPermission(onRegister)
             }
         }).catch(err => console.log('Permission reject'))
     }
@@ -36,23 +70,28 @@ class FCMService {
         })
     }
 
+    //request quyền nhận thống báo của ứng dụng
     requestPermission = (onRegister) => {
+        console.log('xin quyền1');
         messaging().requestPermission().then(() => {
+            console.log('xin quyền2');
             this.getToken(onRegister)
         }).catch(err => console.log(err))
     }
 
     createNotificationListeners = (onRegister, onNotification, onOpenNotification) => {
+        // Bắt sự kiện khi có notify được push đến và app đang ở trạng thái Foreground
         messaging().onNotificationOpenedApp(remoteMessage => {
-            console.log('onNotificartionOpenedApp Notification');
+            console.log('Có notify đến onNotificationOpenedApp: ', remoteMessage);
             if (remoteMessage) {
                 const notification = remoteMessage.notification
                 onOpenNotification(notification)
             }
         });
 
+        // Luôn return null
         messaging().getInitialNotification().then(remoteMessage => {
-            console.log('getInitialNotification');
+            console.log('Có notify đến getInitialNotification: ', remoteMessage);
             if (remoteMessage) {
                 const notification = remoteMessage.notification
                 onOpenNotification(notification)
@@ -60,8 +99,8 @@ class FCMService {
         });
 
         //Foreground state message
-        this.messageListener = messaging().onMessage(async remoterMessage => {
-            console.log('A new FCM message arrived! ', remoterMessage);
+        this.messageListener = messaging().onMessage(remoterMessage => {
+            console.log('Có notify đến Foreground State: ', remoterMessage);
             if (remoterMessage) {
                 let notification = null
                 if (Platform.OS === 'ios') {

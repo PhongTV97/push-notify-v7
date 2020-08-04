@@ -5,10 +5,10 @@ class LocalNotificationService {
     configure = (onOpenNotification) => {
         PushNotification.configure({
             onRegister: function (token) {
-                console.log('onRegister: ', token);
+                console.log('LocalNotificationService onRegister: ', token);
             },
             onNotification: function (notification) {
-                console.log('onNotification', notification);
+                console.log('LocalNotificationService onNotification', notification);
                 if (!notification?.data) {
                     return
                 }
@@ -26,9 +26,9 @@ class LocalNotificationService {
         })
     }
 
-    unregister = () => {
-        PushNotification.unregister();
-    }
+    // unregister = () => {
+    //     PushNotification.unregister();
+    // }
 
     showNotification = (id, title, message, data = {}, options = {}) => {
         PushNotification.localNotification({
@@ -52,14 +52,14 @@ class LocalNotificationService {
         }
     }
 
-    cancelAllLocalNotifications = () => {
-        PushNotification.cancelAllLocalNotifications()
-    }
+    // cancelAllLocalNotifications = () => {
+    //     PushNotification.cancelAllLocalNotifications()
+    // }
 
-    removeDeliveredNotificationByID = (notificationId) => {
-        console.log('removeDeliveredNotificationByID', notificationId);
-        PushNotification.cancelAllLocalNotifications({ id: `${notificationId}` })
-    }
+    // removeDeliveredNotificationByID = (notificationId) => {
+    //     console.log('removeDeliveredNotificationByID', notificationId);
+    //     PushNotification.cancelAllLocalNotifications({ id: `${notificationId}` })
+    // }
 }
 
 export const localNotification = new LocalNotificationService();
